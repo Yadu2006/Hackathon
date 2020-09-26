@@ -1,0 +1,807 @@
+//Background
+var Background = createSprite(200, 200, 400, 400);
+Background.setAnimation("bg.png_1");
+
+//groups
+var covidGroup = createGroup();
+var dropGroup = createGroup();
+var disinfectorGroup = createGroup();
+var maskGroup = createGroup();
+var glovesGroup = createGroup();
+var ppeGroup = createGroup();
+
+//destroyer
+var destroyer = createSprite(55, 380, 20, 20);
+destroyer.setAnimation("1normal.png_1");
+destroyer.scale = 0.54;
+destroyer.setCollider("rectangle", -60, 0, 150, 400);
+destroyer.visible = false;
+
+//Life
+var Life_animation = createSprite(55, 35, 20, 20);
+Life_animation.setAnimation("Group 140.png_1");
+Life_animation.scale = 0.45;
+Life_animation.visible = false;
+
+var life = 5;
+
+var i = 0;
+
+//Close button
+var Close = createSprite(340, 30, 10, 10);
+Close.setAnimation("download.png");
+Close.scale = 0.079;
+
+//help button
+var help = createSprite(40, 40, 20, 20, 20);
+help.setAnimation("help.jpg_1");
+help.scale = 0.07;
+help.visible = false;
+
+//instructions
+var instructions = createSprite(200, 200, 20, 20);
+instructions.setAnimation("Instructions.jpg_1");
+instructions.scale = 0.7;
+instructions.visible = false;
+
+//Cylinder
+var cylinder = createSprite(27, 380, 20, 20);
+cylinder.setAnimation("output-onlinepngtools.png_1");
+cylinder.scale = 0.56;
+cylinder.visible = false;
+
+//Covid Precautions
+var covid_Precautions = createSprite(200, 200, 400, 400);
+covid_Precautions.setAnimation("Covid - 19.jpg");
+covid_Precautions.scale = 0.7;
+covid_Precautions.visible = false;
+
+//Covid button
+var covid_Button = createSprite(200, 300, 400, 20);
+covid_Button .setAnimation("Group 138.png_1");
+covid_Button .scale = 0.4;
+covid_Button .visible = false;
+
+//Start button
+var Start = createSprite(200, 200, 20, 20);
+Start.setAnimation("Group 131.png_1");
+Start.scale = 0.7;
+
+//Covid destroyed
+var Covid_destroyed = 0;
+
+
+//game state
+var gameState = "SERVE";
+
+//count
+var count = -1;
+
+//count2
+var count2 = 0;
+
+function draw() {
+  
+  background("white");
+  
+  Help();
+  
+  //Condition if game state is "SERVE" 
+  if(gameState === "SERVE")
+  { 
+    
+    Close.visible = false;
+    help.visible = true;
+    
+    //Condition if mouse is pressed over start button
+    if(mousePressedOver(Start))
+    {
+      
+      playSound("sound://category_app/app_interface_click_2.mp3");
+      gameState = "PLAY";
+      playSound("sound://category_female_voiceover/go_female.mp3");
+      
+    }
+    
+    if(mousePressedOver(help))
+    {
+      
+      playSound("sound://category_app/app_interface_click_2.mp3");
+      gameState = "HELP";
+      
+    }
+    
+  }
+  else
+  {
+    
+    help.visible = false;
+    
+  }
+ 
+  //Condition if game state is "PLAY"   
+  if(gameState === "PLAY")
+  { 
+    //Setting the destroyer visible
+    destroyer.visible = true;
+    
+    cylinder.visible = true;
+    cylinder.y = destroyer.y - 40;
+    
+    Cylinder();
+    
+    //Setting the Start button invisible
+    Start.visible = false;
+    
+    
+    Life_animation.visible = true;
+    
+    //Calling the switchLife function
+    switchLife();
+    
+    //draw line
+    line(0, 60, 400, 60);
+    
+    textSize(20);
+    fill("brown");
+    textFont("Georgia");
+    text("Covid Destroyed: " + Covid_destroyed  + "/20" , 180, 40);
+
+  
+    //Calling the Corona function
+    Corona();
+    
+    //Calling the movement function
+    movement();
+    
+    //Calling the CovidisTouching function
+    SpriteIsTouching();
+    
+    //Calling the Sanitizer function
+    Sanitizer();
+    
+    //Condition if count is equal to 20 or if life is equal to zero
+    if(count === 20||life === 0)
+    {
+      //Changing and game state to "END"
+      gameState = "END";
+      
+      
+    }
+    
+      
+  }
+  
+  //Condition if game state is "END" 
+  if(gameState === "END")
+  {
+    
+    cylinder.visible = false;
+    
+    //Setting the Covid button visible
+    covid_Button .visible = true;
+    
+    //Condition if mouse is pressed over Covid button
+    if(mousePressedOver(covid_Button))
+    
+    {
+      
+      playSound("sound://category_app/app_interface_click_2.mp3");
+      gameState = "COVID";
+      
+    }
+    
+    //Condition if Covid_destroyed is greater than or equal to 15  
+    if(Covid_destroyed >= 15)
+    {
+   
+      fill("green");
+      textSize(20);
+      text("Congatulations! You have successfully ", 35, 210);
+      text("protected your community from Covid-19", 20, 240);
+      
+      textSize(20);
+      fill("brown");
+      textFont("Georgia");
+      text("Covid Destroyed: " + Covid_destroyed  + "/20" , 180, 40);
+      
+      //Destroying the groups
+      destroyer.destroy();
+      dropGroup.destroyEach();
+      disinfectorGroup.destroyEach();
+      maskGroup.destroyEach();
+      glovesGroup.destroyEach();
+      ppeGroup.destroyEach();
+      
+      //Setting the groups invisible
+      dropGroup.setVisibleEach(false);
+      covidGroup.setVisibleEach(false);
+      disinfectorGroup.setVisibleEach(false);
+      maskGroup.setVisibleEach(false);
+      glovesGroup.setVisibleEach(false);
+      ppeGroup.setVisibleEach(false);
+      
+      //Setting the velocity of the groups to zero
+      dropGroup.setVelocityEach(0,0);
+      covidGroup.setVelocityEach(0,0);
+      disinfectorGroup.setVelocityEach(0,0);
+      maskGroup.setVelocityEach(0,0);
+      glovesGroup.setVelocityEach(0,0);
+      ppeGroup.setVelocityEach(0,0);
+      
+    }
+
+    //Condition if life is equal to 0 or if Covid_destroyed is lesser than 15
+    if(life === 0 || Covid_destroyed < 15)
+    {
+      
+      //Condition if life is equal to zero
+      if(life === 0)
+      {
+        
+        Life_animation.setAnimation("Group 145.png_1");
+        
+      }
+        
+      fill("red");
+      textSize(20);
+      text("Uh oh, You have failed to protect ", 50, 210);
+      text("your community from Covid-19", 60, 240);
+      
+      textSize(20);
+      fill("brown");
+      textFont("Georgia");
+      text("Covid Destroyed: " + Covid_destroyed  + "/20" , 180, 40);
+      
+      //Destroying the groups
+      destroyer.destroy();
+      dropGroup.destroyEach();
+      disinfectorGroup.destroyEach();
+      maskGroup.destroyEach();
+      glovesGroup.destroyEach();
+      ppeGroup.destroyEach();
+      
+      //Setting the groups invisible
+      dropGroup.setVisibleEach(false);
+      covidGroup.setVisibleEach(false);
+      disinfectorGroup.setVisibleEach(false);
+      maskGroup.setVisibleEach(false);
+      glovesGroup.setVisibleEach(false);
+      ppeGroup.setVisibleEach(false);
+      
+      //Setting the velocity of the groups to zero
+      dropGroup.setVelocityEach(0,0);
+      covidGroup.setVelocityEach(0,0);
+      disinfectorGroup.setVelocityEach(0,0);
+      maskGroup.setVelocityEach(0,0);
+      glovesGroup.setVelocityEach(0,0);
+      ppeGroup.setVelocityEach(0,0);
+      
+      
+    }
+    
+    
+  }
+  
+  //Condition if game state is "COVID"
+  if(gameState === "COVID")
+  { 
+    Life_animation.visible = false;
+    covid_Button .visible = false;
+    covid_Precautions.visible = true; 
+  }
+  
+  //displaying the sprites
+  drawSprites();
+  
+}  
+
+function Corona(){
+  
+  //Condition if the the remainder World.frameCount is 0 when it is devided by 80 
+  if(World.frameCount % 80 === 0 ){
+     
+     //corona
+     var corona = createSprite(390, 200, 20, 20);
+     corona.setAnimation("virus.png_1");
+     corona.scale = 0.4;
+     corona.setCollider("circle", 0, 0, 75);
+    
+    //Assigning the y axis of corona to random number
+    corona.y = randomNumber(125, 360);
+    
+    //Assigning the velocity X of corona
+    corona.velocityX = -7;
+    
+    //Condition if the x axis of corona is greater than 380
+    if(corona.x > 380)
+    {
+      
+      count = count + 1;
+      
+    }
+    //Condition if the count is greater than or equal to 5
+    if(count >= 5)
+    {
+      
+      corona.velocityX = -9;
+      
+    }
+    
+    //Condition if the count is greater than or equal to 10
+    if(count >= 10)
+    {
+      
+      corona.velocityX = -10;
+      
+    }
+    
+    //Condition if the count is greater than or equal to 15
+    if(count >= 15)
+    {
+      
+      corona.velocityX = -11;
+      
+    }
+    
+    //Assigning the lifetime of corona
+    corona.lifetime = 100;
+    
+    //Adding the corona to its group
+    covidGroup.add(corona);
+  }
+
+}
+function Drop(){
+  
+  if(count2 != 12)
+  { 
+    //drop   
+    var drop = createSprite(125, 200, 20, 20);
+    drop.setAnimation("Group 49@2x.png_1");
+    drop.scale = 0.25;
+    
+    //Assigning the y axis of drop
+    drop.y = destroyer.y - 35;
+    
+    //Assigning the velocity X of drop
+    drop.velocityX = 5;
+    
+    if(drop.x > 115)
+    {
+      if(count2 === 12)
+      {
+        
+        count2 = 12;
+        
+      }
+      else
+      {
+        
+        count2 = count2 + 1;
+        
+      }
+      
+    }
+    
+    
+    //Assigning the lifetime of drop
+    drop.lifetime = 100;
+    
+    //Adding the drop to its group
+    dropGroup.add(drop);
+  
+  }
+
+  
+
+} 
+
+function switchLife()
+{
+    
+    //Using the switch case according to life
+    switch(life)
+    {
+      case 5:
+            Life_animation.setAnimation("Group 140.png_1");
+            break;
+      case 4: 
+            Life_animation.setAnimation("Group 141.png_1");
+            Mask();
+            break; 
+      case 3: 
+            Life_animation.setAnimation("Group 142.png_1");
+            Gloves();
+            break;
+      case 2: 
+            Life_animation.setAnimation("Group 143.png_1");
+            Ppe();
+            break;  
+      case 1:
+            Life_animation.setAnimation("Group 144.png_1");
+            Ppe();
+            break; 
+      case 0: 
+            Life_animation.setAnimation("Group 145.png_1");
+            break;       
+      default: 
+            break;
+  } 
+  
+  
+}
+
+function movement()
+{   
+  
+    //Condition if the y axis of the destroyer is lesser than 151
+    if(destroyer.y < 161)
+    {
+      
+      //Condition if up arrow is pressed
+      if(keyDown("up"))
+      {
+      
+        destroyer.y = 161;
+      
+      }
+      
+      //Condition if down arrow is pressed
+      if(keyDown("down"))
+      {
+      
+        destroyer.y = destroyer.y + 5;
+        cylinder.y = cylinder.y + 4;
+    
+      }
+      
+    }
+    
+    //Else if condition if the y axis of the destroyer is greater than 400
+    else if(destroyer.y > 400)
+    {
+      //Condition if down arrow is pressed
+      if(keyDown("down"))
+      {
+      
+        destroyer.y = destroyer.y + 0;
+      
+      }
+      
+      //Condition if up arrow is pressed
+      if(keyDown("up"))
+      {
+      
+        destroyer.y = destroyer.y - 5;
+        cylinder.y = cylinder.y - 4;
+      
+      }
+      
+    }
+    
+    //Else condition
+    else
+    {
+      
+      //Condition if down arrow is pressed
+      if(keyDown("down"))
+      {
+      
+        destroyer.y = destroyer.y + 5;
+        cylinder.y = cylinder.y + 4;
+      
+      }
+    
+      //Condition if up arrow is pressed
+      if(keyDown("up"))
+      {
+      
+        destroyer.y = destroyer.y - 5;
+        cylinder.y = cylinder.y - 4;
+      
+      }
+      
+    }
+    
+    //Condition if space bar is pressed
+    if(keyWentUp("space"))
+    {
+      
+      Drop();
+      if(count2 != 12)
+      {
+        playSound("sound://category_pop/deep_bubble_notification.mp3");
+      }
+    }
+}
+
+function SpriteIsTouching()
+{
+    //Condition if covidGroup is touching the dropGroup
+    if(covidGroup.isTouching(dropGroup))
+    {
+      
+      covidGroup.destroyEach();
+      dropGroup.destroyEach();
+      
+      Covid_destroyed = Covid_destroyed + 1;
+      playSound("sound://category_explosion/vibrant_game_ball_touch_1.mp3");
+      
+    }
+    
+    //Condition if disinfectorGroup is touching the dropGroup
+    if(disinfectorGroup.isTouching(destroyer))
+    {
+      
+      disinfectorGroup.destroyEach();
+      
+      count2 = count2 - 6;
+      playSound("sound://category_points/vibrant_game_collect_jewel_1_down.mp3");
+      
+    }
+    
+    //Condition if maskGroup is touching the dropGroup
+    if(maskGroup.isTouching(destroyer))
+    {
+      
+      maskGroup.destroyEach();
+      playSound("sound://category_points/vibrant_game_game_flip_ui_touch.mp3");
+      
+      destroyer.setAnimation("2mask.png_1");
+      
+      i = i + 1;
+      
+      life = life + 1;
+      
+    }
+    
+    if(i === 1)
+    {
+      
+      cylinder.x = 20;
+      cylinder.y = destroyer.y - 40;
+      
+    }
+    if(glovesGroup.isTouching(destroyer))
+    {
+      
+      glovesGroup.destroyEach();
+      playSound("sound://category_points/vibrant_game_game_flip_ui_touch.mp3");
+      
+      destroyer.setAnimation("3glove.png_1");
+      
+      i = i + 1;
+      
+      life = life + 1;
+      
+    }
+    
+    if(i === 2)
+    {
+      
+      cylinder.x = 27;
+      cylinder.y = destroyer.y - 40;
+      
+    }
+    if(ppeGroup.isTouching(destroyer))
+    {
+      
+      ppeGroup.destroyEach();
+      playSound("sound://category_points/vibrant_game_game_flip_ui_touch.mp3");
+      
+      destroyer.setAnimation("4ppe.png_1");
+      
+      i = i + 1;
+      
+      life = life + 2;
+      
+    }
+    
+    if(i === 3)
+    {
+      
+      cylinder.x = 27;
+      cylinder.y = destroyer.y - 40;
+      
+    }
+    
+    //Condition if covidGroup is touching the destroyer
+    if(covidGroup.isTouching(destroyer))
+    {
+      
+      life = life - 1;
+      covidGroup.destroyEach();
+      playSound("sound://category_accent/puzzle_game_accent_a_05.mp3");
+          
+    }
+  
+}
+
+function Cylinder()
+{
+  
+  //Condition if count2 lesser than 3
+  if(count2 < 3)
+  {
+    
+    cylinder.setAnimation("output-onlinepngtools.png_1");
+    
+  }
+  
+  //Condition if count2 is lesser than 6
+  else if(count2 < 6)
+  {
+    
+    cylinder.setAnimation("output-onlinepngtools (1).png_1");
+    
+  }
+  
+  //Condition if count2 is lesser than 9
+  else if(count2 < 9)
+  {
+    
+    cylinder.setAnimation("output-onlinepngtools (2).png_1");
+    
+  }
+  
+  //Condition if count2 is lesser than 3
+  else if(count2 < 12)
+  {
+    
+    cylinder.setAnimation("output-onlinepngtools (3).png_1");
+    
+  }
+  
+  //Condition if count2 is  equal to 12
+  if(count2 === 12)
+  {
+    
+    cylinder.visible = false;
+    
+    
+  }
+  
+}
+
+function Sanitizer()
+{
+  if(World.frameCount % 600 === 0)
+  {
+    
+    //disinfector
+    var disinfector = createSprite(390, 200, 20, 20);
+    disinfector.setAnimation("sanitiser.png_1");
+    disinfector.scale = 0.2;
+    
+    //Assigning the y axis of disinfector to random number
+    disinfector.y = randomNumber(125, 360);
+      
+    //Assigning the velocity X of disinfector
+    disinfector.velocityX = -7;
+    
+    //Assigning the lifetime of disinfector
+    disinfector.lifetime = 100;
+    
+    //Adding the disinfector to its group
+    disinfectorGroup.add(disinfector);
+      
+  }
+}
+
+function Mask()
+{
+  
+  if(i === 0)
+  {
+    if(World.frameCount % 50 === 0 )
+    {
+      
+      //mask
+      var mask = createSprite(390, 200, 20, 20);
+      mask.setAnimation("maskicon.png_1");
+      mask.scale = 0.6;
+      
+      //Assigning the y axis of mask to random number
+      mask.y = randomNumber(165, 350);
+        
+      //Assigning the velocity X of mask
+      mask.velocityX = -8;
+      
+      //Assigning the lifetime of mask
+      mask.lifetime = 100;
+      
+      //Adding the mask to its group
+      maskGroup.add(mask);
+        
+    }
+  }
+}
+
+function Gloves()
+{
+  
+  if(i === 1)
+  {
+    if(World.frameCount % 50 === 0 )
+    {
+      
+      //gloves
+      var gloves = createSprite(390, 200, 20, 20);
+      gloves.setAnimation("gloveicon.png_1");
+      gloves.scale = 0.6;
+      
+      //Assigning the y axis of gloves to random number
+      gloves.y = randomNumber(165, 350);
+        
+      //Assigning the velocity X of gloves
+      gloves.velocityX = -8;
+      
+      //Assigning the lifetime of gloves
+      gloves.lifetime = 100;
+      
+      //Adding the gloves to its group
+      glovesGroup.add(gloves);
+        
+    }
+  }
+}
+function Ppe()
+{
+  
+  if(i === 2)
+  { 
+    
+    if(World.frameCount % 50 === 0 )
+    {
+      
+      //ppe
+      var ppe = createSprite(390, 200, 20, 20);
+      ppe.setAnimation("ppeicon.png_1");
+      ppe.scale = 0.6;
+      
+      //Assigning the y axis of ppe to random number
+      ppe.y = randomNumber(165, 350);
+        
+      //Assigning the velocity X of ppe
+      ppe.velocityX = -10;
+      
+      //Assigning the lifetime of ppe
+      ppe.lifetime = 100;
+      
+      //Adding the ppe to its group
+      ppeGroup.add(ppe);
+        
+    }
+  }
+}
+
+function Help()
+{
+  
+  if(gameState === "HELP")
+  {
+    
+    Start.visible = false;
+    help.visible = false;
+    instructions.visible = true;
+    Close.visible = true;    
+    
+    if(mousePressedOver(Close))
+    {
+      
+      playSound("sound://category_app/app_interface_click_2.mp3");
+      gameState = "SERVE";
+      
+      instructions.visible = false;
+      Start.visible = true;
+      help.visible = true;
+      
+    }
+    
+    
+  }
+  
+  
+}
+
